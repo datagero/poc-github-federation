@@ -1,0 +1,30 @@
+name: Test GITHUB_TOKEN
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-token:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check token exists
+        run: |
+          if [ -z "${{ secrets.GITHUB_TOKEN }}" ]; then
+            echo "GITHUB_TOKEN is NOT set"
+            exit 1
+          else
+            echo "GITHUB_TOKEN is set"
+          fi
+
+      - name: Attempt to print token (will be masked)
+        run: |
+          echo "Token value:"
+          echo "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Use token to call GitHub API
+        run: |
+          curl -s \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }} \
+            | jq '.full_name'
