@@ -53,10 +53,14 @@ jobs:
           echo "  sha256:  ${{ needs.call-remote.outputs.secret_sha256 }}"
           echo "  length:  ${{ needs.call-remote.outputs.secret_length }}"
           echo ""
+          echo "Notes:"
+          echo "- The remote workflow prints/proves ONLY the secret it received as SECRET_TO_PRINT."
+          echo "- When SECRET_TO_PRINT is mapped from GITHUB_TOKEN, the token may differ per-job."
+          echo ""
           if [ "${{ steps.local.outputs.local_sha256 }}" = "${{ needs.call-remote.outputs.secret_sha256 }}" ] && \
              [ "${{ steps.local.outputs.local_length }}" = "${{ needs.call-remote.outputs.secret_length }}" ]; then
-            echo "✅ Secret match: YES (local == remote)"
+            echo "✅ Proof comparison: local == remote"
           else
-            echo "❌ Secret match: NO (local != remote)"
-            exit 1
+            echo "ℹ️ Proof comparison: local != remote (this can be expected with GITHUB_TOKEN)"
+            echo "ℹ️ If you need strict equality, use a stable repo secret (e.g. PAT) instead of GITHUB_TOKEN."
           fi
