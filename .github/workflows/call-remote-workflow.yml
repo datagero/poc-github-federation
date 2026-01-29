@@ -9,13 +9,54 @@ jobs:
     uses: datagero/poc-github-federation-dp/.github/workflows/reusable-called.yml@main
     with:
       message: "Hello from ${{ github.repository }} (run_id=${{ github.run_id }})"
+      any_text: "caller=${{ github.repository }}; run_id=${{ github.run_id }}; actor=${{ github.actor }}"
+    secrets:
+      SECRET_TO_PRINT: ${{ secrets.GITHUB_TOKEN }}
 
   show-output:
-    name: Show output returned from remote workflow
+    name: Show summary (local vs remote)
     runs-on: ubuntu-latest
     needs: call-remote
     steps:
+      - name: Compute local proof
+        id: local
+        shell: bash
+        env:
+          LOCAL_SECRET: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Local secret (masked): ${LOCAL_SECRET}"
+          sha="$(echo -n "${LOCAL_SECRET}" | shasum -a 256 | awk '{print $1}')"
+          len="$(echo -n "${LOCAL_SECRET}" | wc -c | tr -d ' ')"
+          echo "local_sha256=${sha}" >> "$GITHUB_OUTPUT"
+          echo "local_length=${len}" >> "$GITHUB_OUTPUT"
+
       - name: Print output
         run: |
-          echo "✅ Output from remote:"
+          echo "===================="
+          echo "CALLER REPO SUMMARY"
+          echo "===================="
+          echo "Repo:           ${{ github.repository }}"
+          echo "Run ID:         ${{ github.run_id }}"
+          echo "Branch:         ${{ github.ref_name }}"
+          echo ""
+          echo "Remote received_message:"
           echo "${{ needs.call-remote.outputs.received_message }}"
+          echo ""
+          echo "Remote received_any_text:"
+          echo "${{ needs.call-remote.outputs.received_any_text }}"
+          echo ""
+          echo "Local secret proof:"
+          echo "  sha256:  ${{ steps.local.outputs.local_sha256 }}"
+          echo "  length:  ${{ steps.local.outputs.local_length }}"
+          echo ""
+          echo "Remote secret proof:"
+          echo "  sha256:  ${{ needs.call-remote.outputs.secret_sha256 }}"
+          echo "  length:  ${{ needs.call-remote.outputs.secret_length }}"
+          echo ""
+          if [ "${{ steps.local.outputs.local_sha256 }}" = "${{ needs.call-remote.outputs.secret_sha256 }}" ] && \
+             [ "${{ steps.local.outputs.local_length }}" = "${{ needs.call-remote.outputs.secret_length }}" ]; then
+            echo "✅ Secret match: YES (local == remote)"
+          else
+            echo "❌ Secret match: NO (local != remote)"
+            exit 1
+          fi
