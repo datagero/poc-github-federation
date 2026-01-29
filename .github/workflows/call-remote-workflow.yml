@@ -1,4 +1,4 @@
-name: Call remote reusable workflow
+name: Remote call - secret forwarding proof
 
 on:
   workflow_dispatch:

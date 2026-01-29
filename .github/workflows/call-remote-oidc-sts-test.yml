@@ -1,4 +1,4 @@
-name: OIDC in base -> call remote OIDC STS
+name: OIDC (base) -> remote reusable (STS)
 
 on:
   workflow_dispatch:
