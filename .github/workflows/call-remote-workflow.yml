@@ -1,0 +1,21 @@
+name: Call remote reusable workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  call-remote:
+    name: Call datagero/poc-github-federation-dp
+    uses: datagero/poc-github-federation-dp/.github/workflows/reusable-called.yml@main
+    with:
+      message: "Hello from ${{ github.repository }} (run_id=${{ github.run_id }})"
+
+  show-output:
+    name: Show output returned from remote workflow
+    runs-on: ubuntu-latest
+    needs: call-remote
+    steps:
+      - name: Print output
+        run: |
+          echo "✅ Output from remote:"
+          echo "${{ needs.call-remote.outputs.received_message }}"
