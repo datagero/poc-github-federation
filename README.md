@@ -4,6 +4,20 @@ This repo is the **caller** in a “federated workflows” POC:
 - It triggers **reusable workflows** that live in `datagero/poc-github-federation-dp`
 - It demonstrates **secret forwarding** and **OIDC (AWS) from the caller identity**
 
+### Reusable workflow: caller-provided credentials (TASK-001-1)
+
+This repo also provides a reusable workflow that accepts secrets from the caller (so the caller keeps ownership of credentials).
+
+- **Reusable workflow**: `.github/workflows/reusable-deploy.yml`
+- **Trigger**: `workflow_call`
+- **Inputs**:
+  - `environment` (required)
+- **Secrets**:
+  - `DEPLOY_TOKEN` (required, provided by the caller)
+
+**Security note**: the workflow never prints the secret; it only logs a length + sha256 proof.
+
+
 ### Prereqs
 
 - **GitHub CLI**: `gh` installed + authenticated (`gh auth login`)

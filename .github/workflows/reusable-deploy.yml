@@ -1,0 +1,41 @@
+name: Reusable Deploy (Caller Credentials)
+
+on:
+    workflow_call:
+        inputs:
+            environment:
+                type: string
+                required: true
+                description: "Target environment (e.g., staging, production)"
+        secrets:
+            DEPLOY_TOKEN:
+                required: true
+                description: "Token for deployment (provided by caller)"
+
+permissions:
+    contents: read
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Deploy (demo)
+              shell: bash
+              env:
+                  DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+                  ENVIRONMENT: ${{ inputs.environment }}
+              run: |
+                  set -euo pipefail
+                  echo "Deploying to: ${ENVIRONMENT}"
+
+                  # Proof we received a (non-empty) secret without printing it.
+                  if [[ -z "${DEPLOY_TOKEN}" ]]; then
+                    echo "ERROR: DEPLOY_TOKEN is empty"
+                    exit 1
+                  fi
+
+                  echo "DEPLOY_TOKEN length: ${#DEPLOY_TOKEN}"
+                  echo "DEPLOY_TOKEN sha256: $(printf '%s' "${DEPLOY_TOKEN}" | sha256sum | awk '{print $1}')"
