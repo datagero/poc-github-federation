@@ -1,0 +1,42 @@
+name: Handle Dispatch Event
+
+on:
+    repository_dispatch:
+        types: [build-request, deploy-request]
+
+jobs:
+    handle-event:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Log event details
+              run: |
+                  echo "=== Repository Dispatch Received ==="
+                  echo "Event type: ${{ github.event.action }}"
+                  echo "Sender: ${{ github.event.sender.login }}"
+                  echo ""
+                  echo "=== Client Payload ==="
+                  echo '${{ toJSON(github.event.client_payload) }}'
+
+            - name: Process based on event type
+              run: |
+                  case "${{ github.event.action }}" in
+                    build-request)
+                      echo "Processing build request..."
+                      echo "Ref: ${{ github.event.client_payload.ref }}"
+                      echo "Triggered by: ${{ github.event.client_payload.triggered_by }}"
+                      ;;
+                    deploy-request)
+                      echo "Processing deploy request..."
+                      echo "Environment: ${{ github.event.client_payload.environment }}"
+                      ;;
+                    *)
+                      echo "Unknown event type: ${{ github.event.action }}"
+                      exit 1
+                      ;;
+                  esac
+
+            - name: Simulate work
+              run: |
+                  echo "Doing some work..."
+                  sleep 5
+                  echo "Work complete!"
