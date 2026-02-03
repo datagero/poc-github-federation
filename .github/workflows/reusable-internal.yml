@@ -1,0 +1,42 @@
+name: Reusable Internal (Demonstrates Limitation)
+
+on:
+    workflow_call:
+        secrets:
+            CALLER_SECRET:
+                required: false
+                description: "Secret from caller (will work)"
+
+jobs:
+    test-secrets:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Test caller secret (via inherit)
+              run: |
+                  if [ -n "$CALLER_SECRET" ]; then
+                    echo "✅ Caller secret received: ${CALLER_SECRET:0:4}****"
+                  else
+                    echo "❌ Caller secret NOT received"
+                  fi
+              env:
+                  CALLER_SECRET: ${{ secrets.CALLER_SECRET }}
+
+            - name: Test bar's own secret (will NOT work)
+              run: |
+                  # BAR_INTERNAL_SECRET is defined in bar's repo secrets
+                  # but it will NOT be available here when called via workflow_call
+                  if [ -n "$BAR_INTERNAL_SECRET" ]; then
+                    echo "✅ Bar's secret available: ${BAR_INTERNAL_SECRET:0:4}****"
+                  else
+                    echo "❌ Bar's own secret NOT available (expected behavior)"
+                    echo ""
+                    echo "This demonstrates that secrets: inherit passes the"
+                    echo "CALLER's secrets, not the callee's own secrets."
+                    echo ""
+                    echo "For callee-owned credentials, use:"
+                    echo "  1. OIDC federation (see TASK-002-1)"
+                    echo "  2. GitHub App tokens"
+                    echo "  3. Environment secrets"
+                  fi
+              env:
+                  BAR_INTERNAL_SECRET: ${{ secrets.BAR_INTERNAL_SECRET }}
