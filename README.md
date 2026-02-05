@@ -51,3 +51,23 @@ Use the script below to trigger the workflow suite and wait for each run to fini
 ```
 
 
+
+### CSV/QIF Column Mapper (SCRUM-8)
+
+- Purpose: Normalize bank exports (`.csv` or `.qif`) into a standard schema with a one-time header mapping saved as a reusable "Bank Profile".
+- Script: `scripts/csv_mapper.py`
+
+Quick start:
+
+```bash
+python3 scripts/csv_mapper.py samples/transactions_sample.csv --bank-name BarBank --output normalized.csv
+```
+
+What happens:
+- If headers are unknown, the tool interactively asks you to map `date`, `description`, and `amount`.
+- The mapping is saved under `.bank-profiles/BarBank.json` (and a header-signature profile), so future files from the same bank map automatically.
+- Use `--output` to write a normalized CSV with columns: `date,description,amount`. Without `--output`, JSON lines are printed to stdout.
+
+Supports `.csv` and `.qif` inputs.
+
+
